@@ -1,1 +1,1663 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام مراقبة المولدات ووقود الديزل</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            padding-top: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg);
+        }
+        
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+            border: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            border-radius: 12px 12px 0 0 !important;
+            font-weight: 600;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: var(--dark-color);
+            margin-bottom: 5px;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary-color);
+            border: none;
+            padding: 10px 20px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        
+        .btn-print {
+            background-color: var(--success-color);
+            border: none;
+            padding: 12px 25px;
+            font-weight: 600;
+            border-radius: 8px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-print:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .result-box {
+            background-color: var(--light-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            border-right: 4px solid var(--secondary-color);
+            transition: all 0.3s ease;
+        }
+        
+        .generator-icon {
+            font-size: 2.5rem;
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+            transition: transform 0.5s ease;
+        }
+        
+        .card:hover .generator-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        .consumption-badge {
+            font-size: 1.1rem;
+            padding: 8px 15px;
+            border-radius: 8px;
+        }
+        
+        .summary-card {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .summary-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        /* طباعة التقرير */
+        .report-container {
+            display: none;
+            background: white;
+            padding: 30px;
+            margin: 20px auto;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            max-width: 800px;
+            position: relative;
+        }
+        
+        .report-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .report-details {
+            margin-bottom: 25px;
+        }
+        
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+        }
+        
+        .report-table th, .report-table td {
+            padding: 12px;
+            text-align: right;
+            border: 1px solid #ddd;
+        }
+        
+        .report-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .conversion-info {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .report-container, .report-container * {
+                visibility: visible;
+            }
+            .report-container {
+                display: block !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 15px;
+                margin: 0;
+                box-shadow: none;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .card {
+                margin-bottom: 15px;
+            }
+        }
+        
+        .electricity-production {
+            background-color: #fff3cd;
+            border-right: 4px solid #ffc107;
+        }
+        
+        .close-report {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+        }
+        
+        /* إضافة أنماط جديدة للوظائف المضافة */
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 8px;
+        }
+        
+        .status-on {
+            background-color: var(--success-color);
+            box-shadow: 0 0 10px var(--success-color);
+        }
+        
+        .status-off {
+            background-color: #dc3545;
+        }
+        
+        .control-panel {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .tank-level {
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .tank-level-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .alert-low {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+        
+        /* أنماط جديدة للوظائف المحسنة */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+        }
+        
+        .nav-tabs .nav-link {
+            color: var(--dark-color);
+            border: none;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .chart-container {
+            height: 300px;
+            margin: 20px 0;
+        }
+        
+        .maintenance-schedule {
+            background-color: #e8f4fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .progress {
+            height: 10px;
+            margin: 10px 0;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .settings-panel {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .floating-action-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .floating-action-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .welcome-modal {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: var(--secondary-color);
+        }
+        
+        .deployment-guide {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            border-radius: 50%;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- زر الإجراءات السريعة -->
+    <div class="floating-action-btn" data-bs-toggle="modal" data-bs-target="#quickActionsModal">
+        <i class="fas fa-bolt"></i>
+    </div>
 
+    <div class="container">
+        <!-- Header -->
+        <div class="header text-center">
+            <h1><i class="bi bi-lightning-charge"></i> نظام مراقبة المولدات ووقود الديزل</h1>
+            <p class="lead">نظام متكامل لمتابعة أداء المولدات وحساب استهلاك الوقود والإنتاج الكهربائي</p>
+            <div class="mt-3">
+                <span class="badge bg-success me-2">الإصدار 2.0</span>
+                <span class="badge bg-info">محدث</span>
+            </div>
+        </div>
+        
+        <!-- التنبيهات والإشعارات -->
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="fas fa-bell me-2"></i>
+            <strong>مرحباً بك!</strong> تم تحديث النظام بميزات جديدة. 
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- علامات التبويب الرئيسية -->
+        <ul class="nav nav-tabs mb-4" id="mainTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="monitoring-tab" data-bs-toggle="tab" data-bs-target="#monitoring" type="button" role="tab" aria-controls="monitoring" aria-selected="true">
+                    <i class="fas fa-tachometer-alt me-2"></i>المراقبة
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab" aria-controls="reports" aria-selected="false">
+                    <i class="fas fa-chart-bar me-2"></i>التقارير
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="maintenance-tab" data-bs-toggle="tab" data-bs-target="#maintenance" type="button" role="tab" aria-controls="maintenance" aria-selected="false">
+                    <i class="fas fa-tools me-2"></i>الصيانة
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab" aria-controls="settings" aria-selected="false">
+                    <i class="fas fa-cogs me-2"></i>الإعدادات
+                </button>
+            </li>
+        </ul>
+        
+        <!-- محتوى علامات التبويب -->
+        <div class="tab-content" id="mainTabsContent">
+            <!-- علامة تبويب المراقبة -->
+            <div class="tab-pane fade show active" id="monitoring" role="tabpanel" aria-labelledby="monitoring-tab">
+                <div class="row">
+                    <!-- Generator 1 Form -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <i class="bi bi-gear-fill"></i> المولد الكبير
+                                    <span class="status-indicator status-off" id="status1"></span>
+                                </div>
+                                <span class="badge bg-warning">سعة عالية</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="text-center generator-icon">
+                                    <i class="bi bi-lightning-charge-fill"></i>
+                                </div>
+                                
+                                <div class="control-panel">
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <button class="btn btn-success" onclick="startGenerator(1)">
+                                            <i class="bi bi-play-circle"></i> بدء التشغيل
+                                        </button>
+                                        <button class="btn btn-danger" onclick="stopGenerator(1)">
+                                            <i class="bi bi-stop-circle"></i> إيقاف التشغيل
+                                        </button>
+                                    </div>
+                                    <div id="generator1-status" class="text-center fw-bold">غير نشط</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">القراءة السابقة (عداد الساعات)</label>
+                                    <input type="number" class="form-control" id="previousHours1" placeholder="أدخل القراءة السابقة">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">القراءة الحالية (عداد الساعات)</label>
+                                    <input type="number" class="form-control" id="currentHours1" placeholder="أدخل القراءة الحالية">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">القراءة السابقة للإنتاج (كيلوواط ساعة)</label>
+                                    <input type="number" class="form-control" id="previousKwh1" placeholder="أدخل القراءة السابقة">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">القراءة الحالية للإنتاج (كيلوواط ساعة)</label>
+                                    <input type="number" class="form-control" id="currentKwh1" placeholder="أدخل القراءة الحالية">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">سعة الخزان الكلي (لتر)</label>
+                                    <input type="number" class="form-control" id="tankCapacity1" value="1000" placeholder="أدخل سعة الخزان">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">بداية التشغيل (سم)</label>
+                                    <input type="number" class="form-control" id="startLevel1" placeholder="أدخل مستوى الوقود عند البدء">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">نهاية التشغيل (سم)</label>
+                                    <input type="number" class="form-control" id="endLevel1" placeholder="أدخل مستوى الوقود عند الانتهاء">
+                                </div>
+                                
+                                <div class="conversion-info">
+                                    <i class="bi bi-info-circle"></i> معامل التحويل: 1 سم = 12.5 لتر
+                                </div>
+                                
+                                <button class="btn btn-primary w-100" onclick="calculateConsumption(1)">
+                                    <i class="bi bi-calculator"></i> حساب الاستهلاك والإنتاج
+                                </button>
+                                
+                                <div class="result-box" id="result1">
+                                    <h5>نتائج الحساب:</h5>
+                                    <p>ساعات التشغيل: <span id="operationHours1">-</span> ساعة</p>
+                                    <p>الاستهلاك: <span id="consumption1">-</span> لتر</p>
+                                    <p>الباقي في الخزان: <span id="remaining1">-</span> لتر</p>
+                                    <div class="tank-level">
+                                        <div class="tank-level-fill" id="tankLevel1"></div>
+                                    </div>
+                                    <div id="tankAlert1"></div>
+                                    <div class="result-box electricity-production">
+                                        <p>الإنتاج الكهربائي: <span id="electricityProduction1">-</span> كيلوواط ساعة</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Generator 2 Form -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <i class="bi bi-gear"></i> المولد الصغير
+                                    <span class="status-indicator status-off" id="status2"></span>
+                                </div>
+                                <span class="badge bg-info">اقتصادي</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="text-center generator-icon">
+                                    <i class="bi bi-lightning"></i>
+                                </div>
+                                
+                                <div class="control-panel">
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <button class="btn btn-success" onclick="startGenerator(2)">
+                                            <i class="bi bi-play-circle"></i> بدء التشغيل
+                                        </button>
+                                        <button class="btn btn-danger" onclick="stopGenerator(2)">
+                                            <i class="bi bi-stop-circle"></i> إيقاف التشغيل
+                                        </button>
+                                    </div>
+                                    <div id="generator2-status" class="text-center fw-bold">غير نشط</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">القراءة السابقة (عداد الساعات)</label>
+                                    <input type="number" class="form-control" id="previousHours2" placeholder="أدخل القراءة السابقة">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">القراءة الحالية (عداد الساعات)</label>
+                                    <input type="number" class="form-control" id="currentHours2" placeholder="أدخل القراءة الحالية">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">القراءة السابقة للإنتاج (كيلوواط ساعة)</label>
+                                    <input type="number" class="form-control" id="previousKwh2" placeholder="أدخل القراءة السابقة">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">القراءة الحالية للإنتاج (كيلوواط ساعة)</label>
+                                    <input type="number" class="form-control" id="currentKwh2" placeholder="أدخل القراءة الحالية">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">سعة الخزان الكلي (لتر)</label>
+                                    <input type="number" class="form-control" id="tankCapacity2" value="500" placeholder="أدخل سعة الخزان">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">بداية التشغيل (سم)</label>
+                                    <input type="number" class="form-control" id="startLevel2" placeholder="أدخل مستوى الوقود عند البدء">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">نهاية التشغيل (سم)</label>
+                                    <input type="number" class="form-control" id="endLevel2" placeholder="أدخل مستوى الوقود عند الانتهاء">
+                                </div>
+                                
+                                <div class="conversion-info">
+                                    <i class="bi bi-info-circle"></i> معامل التحويل: 1 سم = 13.3 لتر
+                                </div>
+                                
+                                <button class="btn btn-primary w-100" onclick="calculateConsumption(2)">
+                                    <i class="bi bi-calculator"></i> حساب الاستهلاك والإنتاج
+                                </button>
+                                
+                                <div class="result-box" id="result2">
+                                    <h5>نتائج الحساب:</h5>
+                                    <p>ساعات التشغيل: <span id="operationHours2">-</span> ساعة</p>
+                                    <p>الاستهلاك: <span id="consumption2">-</span> لتر</p>
+                                    <p>الباقي في الخزان: <span id="remaining2">-</span> لتر</p>
+                                    <div class="tank-level">
+                                        <div class="tank-level-fill" id="tankLevel2"></div>
+                                    </div>
+                                    <div id="tankAlert2"></div>
+                                    <div class="result-box electricity-production">
+                                        <p>الإنتاج الكهربائي: <span id="electricityProduction2">-</span> كيلوواط ساعة</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Summary and Additional Data -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card summary-card">
+                            <div class="card-header">
+                                إجمالي استهلاك الديزل
+                            </div>
+                            <div class="card-body">
+                                <div class="summary-value" id="totalConsumption">0 لتر</div>
+                                <p>لمولدات التشغيل</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card summary-card">
+                            <div class="card-header">
+                                إجمالي الإنتاج الكهربائي
+                            </div>
+                            <div class="card-body">
+                                <div class="summary-value" id="totalElectricity">0 ك.واط ساعة</div>
+                                <p>لمولدات التشغيل</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                خزان الاحتياطي الكبير
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">كمية الديزل في خزان الاحتياطي (لتر)</label>
+                                    <input type="number" class="form-control" id="reserveTank" placeholder="أدرب كمية الديزل">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">إضافة ديزل للخزان (لتر)</label>
+                                    <input type="number" class="form-control" id="addFuel" placeholder="أدخل الكمية المضافة">
+                                </div>
+                                <button class="btn btn-primary w-100" onclick="updateReserveTank()">
+                                    <i class="bi bi-plus-circle"></i> تحديث الخزان
+                                </button>
+                                <div class="result-box mt-3">
+                                    <p>إجمالي الديزل في الخزان: <span id="totalReserve">0</span> لتر</p>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" id="reserveProgress" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notes Section -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <i class="bi bi-journal-text"></i> الملاحظات
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">أضف ملاحظاتك هنا</label>
+                            <textarea class="form-control" id="notes" rows="3" placeholder="أدخل أي ملاحظات حول تشغيل المولدات أو صيانتها"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">التاريخ</label>
+                            <input type="date" class="form-control" id="currentDate">
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button class="btn btn-primary" onclick="saveData()">
+                                <i class="bi bi-save"></i> حفظ البيانات
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="loadData()">
+                                <i class="bi bi-folder2-open"></i> تحميل البيانات السابقة
+                            </button>
+                            <button class="btn btn-print" onclick="generateReport()">
+                                <i class="bi bi-printer"></i> طباعة التقرير
+                            </button>
+                            <button class="btn btn-info" onclick="exportToExcel()">
+                                <i class="bi bi-file-earmark-spreadsheet"></i> تصدير لإكسل
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- علامة تبويب التقارير -->
+            <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar"></i> التقارير والإحصائيات
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5>تقارير الاستهلاك الشهرية</h5>
+                                <div class="chart-container bg-light rounded p-3">
+                                    <p class="text-center text-muted">رسم بياني يظهر هنا (يتطلب تكامل مع مكتبة رسم بياني)</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>مقارنة كفاءة المولدات</h5>
+                                <div class="chart-container bg-light rounded p-3">
+                                    <p class="text-center text-muted">رسم بياني يظهر هنا (يتطلب تكامل مع مكتبة رسم بياني)</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <i class="fas fa-history"></i> السجل الزمني
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>التاريخ</th>
+                                                        <th>المولد</th>
+                                                        <th>ساعات التشغيل</th>
+                                                        <th>الاستهلاك</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="historyTable">
+                                                    <tr>
+                                                        <td colspan="4" class="text-center">لا توجد بيانات</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <i class="fas fa-tachometer-alt"></i> مؤشرات الأداء
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label>كفاءة المولد الكبير</label>
+                                            <div class="progress mb-2">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: 85%">85%</div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label>كفاءة المولد الصغير</label>
+                                            <div class="progress mb-2">
+                                                <div class="progress-bar bg-info" role="progressbar" style="width: 92%">92%</div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label>متوسط استهلاك الوقود/ساعة</label>
+                                            <div class="d-flex justify-content-between">
+                                                <span>المولد الكبير: 18.5 لتر/ساعة</span>
+                                                <span>المولد الصغير: 8.2 لتر/ساعة</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- علامة تبويب الصيانة -->
+            <div class="tab-pane fade" id="maintenance" role="tabpanel" aria-labelledby="maintenance-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-tools"></i> جدول الصيانة
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="maintenance-schedule">
+                                    <h5><i class="fas fa-cog me-2"></i>المولد الكبير</h5>
+                                    <div class="mb-3">
+                                        <label>آخر صيانة: <span id="lastMaintenance1">15/10/2023</span></label>
+                                        <div class="progress mb-2">
+                                            <div class="progress-bar bg-warning" role="progressbar" style="width: 75%">75% من العمر الافتراضي</div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label>الصيانة القادمة: <span id="nextMaintenance1">15/01/2024</span></label>
+                                        <div class="progress mb-2">
+                                            <div class="progress-bar bg-info" role="progressbar" style="width: 25%">25% متبقي</div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-outline-primary btn-sm" onclick="logMaintenance(1)">
+                                        <i class="fas fa-clipboard-check"></i> تسجيل صيانة
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="maintenance-schedule">
+                                    <h5><i class="fas fa-cog me-2"></i>المولد الصغير</h5>
+                                    <div class="mb-3">
+                                        <label>آخر صيانة: <span id="lastMaintenance2">20/09/2023</span></label>
+                                        <div class="progress mb-2">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 60%">60% من العمر الافتراضي</div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label>الصيانة القادمة: <span id="nextMaintenance2">20/02/2024</span></label>
+                                        <div class="progress mb-2">
+                                            <div class="progress-bar bg-info" role="progressbar" style="width: 40%">40% متبقي</div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-outline-primary btn-sm" onclick="logMaintenance(2)">
+                                        <i class="fas fa-clipboard-check"></i> تسجيل صيانة
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h5><i class="fas fa-clipboard-list me-2"></i>سجل الصيانة</h5>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>التاريخ</th>
+                                            <th>المولد</th>
+                                            <th>نوع الصيانة</th>
+                                            <th>التكلفة (ريال)</th>
+                                            <th>الفني</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="maintenanceLog">
+                                        <tr>
+                                            <td>15/10/2023</td>
+                                            <td>المولد الكبير</td>
+                                            <td>صيانة دورية</td>
+                                            <td>1,200</td>
+                                            <td>أحمد محمد</td>
+                                        </tr>
+                                        <tr>
+                                            <td>20/09/2023</td>
+                                            <td>المولد الصغير</td>
+                                            <td>تغيير زيت</td>
+                                            <td>650</td>
+                                            <td>خالد عبدالله</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- علامة تبويب الإعدادات -->
+            <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-user-cog"></i> إعدادات المستخدم
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3 text-center">
+                                    <div class="user-avatar mx-auto mb-3">م</div>
+                                    <h5>مدير النظام</h5>
+                                    <p class="text-muted">admin@example.com</p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">اسم المستخدم</label>
+                                    <input type="text" class="form-control" value="مدير النظام">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">البريد الإلكتروني</label>
+                                    <input type="email" class="form-control" value="admin@example.com">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">كلمة المرور</label>
+                                    <input type="password" class="form-control" value="********">
+                                </div>
+                                
+                                <button class="btn btn-primary w-100">تحديث المعلومات</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-sliders-h"></i> إعدادات النظام
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">اسم المنشأة</label>
+                                    <input type="text" class="form-control" value="المنشأة العامة">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">العملة</label>
+                                    <select class="form-select">
+                                        <option>ريال سعودي</option>
+                                        <option>دولار أمريكي</option>
+                                        <option>دينار كويتي</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">وحدة القياس</label>
+                                    <select class="form-select">
+                                        <option>لتر</option>
+                                        <option>جالون</option>
+                                        <option>متر مكعب</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="notificationsSwitch" checked>
+                                    <label class="form-check-label" for="notificationsSwitch">تفعيل التنبيهات</label>
+                                </div>
+                                
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="autoSaveSwitch" checked>
+                                    <label class="form-check-label" for="autoSaveSwitch">الحفظ التلقائي</label>
+                                </div>
+                                
+                                <button class="btn btn-primary w-100">حفظ الإعدادات</button>
+                            </div>
+                        </div>
+                        
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <i class="fas fa-cloud-upload-alt"></i> الاستضافة المجانية
+                            </div>
+                            <div class="card-body">
+                                <div class="deployment-guide">
+                                    <h6>دليل النشر على GitHub Pages (مجاني):</h6>
+                                    <ol class="mt-3">
+                                        <li class="mb-2"><span class="step-number">1</span> أنشئ حساب على <a href="https://github.com" target="_blank">GitHub</a></li>
+                                        <li class="mb-2"><span class="step-number">2</span> أنشئ مستودع جديد باسم "generator-monitoring"</li>
+                                        <li class="mb-2"><span class="step-number">3</span> انسخ كود HTML هذا واحفظه في ملف index.html</li>
+                                        <li class="mb-2"><span class="step-number">4</span> ارفع الملف إلى المستودع</li>
+                                        <li class="mb-2"><span class="step-number">5</span> انتقل إلى الإعدادات (Settings) ثم Pages</li>
+                                        <li class="mb-2"><span class="step-number">6</span> اختر فرع main واضغط Save</li>
+                                        <li class="mb-2"><span class="step-number">7</span> انتظر بضع دقائق ثم افتح الرابط الذي سيظهر</li>
+                                    </ol>
+                                    <div class="alert alert-info mt-3">
+                                        <i class="fas fa-info-circle"></i> النظام الآن جاهز للاستخدام على عنوان مثل: 
+                                        <strong>https://yourusername.github.io/generator-monitoring</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Report Section -->
+        <div class="report-container" id="reportContainer">
+            <button class="btn btn-danger close-report no-print" onclick="closeReport()">
+                <i class="bi bi-x-circle"></i> إغلاق
+            </button>
+            <div class="report-header">
+                <h2>تقرير استهلاك المولدات والإنتاج الكهربائي</h2>
+                <p>تاريخ التقرير: <span id="reportDate"></span></p>
+            </div>
+            
+            <div class="report-details">
+                <h4>تفاصيل المولدات</h4>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>نوع المولد</th>
+                            <th>ساعات التشغيل</th>
+                            <th>الاستهلاك (لتر)</th>
+                            <th>الإنتاج الكهربائي (ك.واط ساعة)</th>
+                            <th>المتبقي في الخزان (لتر)</th>
+                            <th>حالة التشغيل</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>المولد الكبير</td>
+                            <td id="reportHours1">-</td>
+                            <td id="reportConsumption1">-</td>
+                            <td id="reportElectricity1">-</td>
+                            <td id="reportRemaining1">-</td>
+                            <td id="reportStatus1">-</td>
+                        </tr>
+                        <tr>
+                            <td>المولد الصغير</td>
+                            <td id="reportHours2">-</td>
+                            <td id="reportConsumption2">-</td>
+                            <td id="reportElectricity2">-</td>
+                            <td id="reportRemaining2">-</td>
+                            <td id="reportStatus2">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h4>الإحصائيات العامة</h4>
+                <table class="report-table">
+                    <tr>
+                        <th>إجمالي ساعات التشغيل</th>
+                        <td id="reportTotalHours">-</td>
+                    </tr>
+                    <tr>
+                        <th>إجمالي استهلاك الديزل</th>
+                        <td id="reportTotalConsumption">-</td>
+                    </tr>
+                    <tr>
+                        <th>إجمالي الإنتاج الكهربائي</th>
+                        <td id="reportTotalElectricity">-</td>
+                    </tr>
+                    <tr>
+                        <th>الديزل في خزان الاحتياطي</th>
+                        <td id="reportReserve">-</td>
+                    </tr>
+                </table>
+                
+                <h4>ملاحظات</h4>
+                <p id="reportNotes">لا توجد ملاحظات</p>
+                
+                <div class="conversion-info mt-4">
+                    <p>معاملات التحويل المستخدمة:</p>
+                    <ul>
+                        <li>المولد الكبير: 1 سم = 12.5 لتر</li>
+                        <li>المولد الصغير: 1 سم = 13.3 لتر</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer no-print">
+            <p>© 2023 نظام مراقبة المولدات ووقود الديزل | الإصدار 2.0 | تم التطوير بواسطة فريق التقنية</p>
+            <div class="mt-2">
+                <button class="btn btn-sm btn-outline-secondary" onclick="showWelcomeModal()">
+                    <i class="fas fa-info-circle"></i> عن النظام
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal الإجراءات السريعة -->
+    <div class="modal fade" id="quickActionsModal" tabindex="-1" aria-labelledby="quickActionsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="quickActionsModalLabel">الإجراءات السريعة</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <button class="btn btn-outline-primary w-100 h-100 py-3" onclick="saveData()">
+                                <i class="fas fa-save fa-2x mb-2"></i><br>
+                                حفظ البيانات
+                            </button>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <button class="btn btn-outline-success w-100 h-100 py-3" onclick="generateReport()">
+                                <i class="fas fa-print fa-2x mb-2"></i><br>
+                                طباعة التقرير
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-outline-info w-100 h-100 py-3" onclick="exportToExcel()">
+                                <i class="fas fa-file-excel fa-2x mb-2"></i><br>
+                                تصدير لإكسل
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-outline-warning w-100 h-100 py-3" onclick="showWelcomeModal()">
+                                <i class="fas fa-info-circle fa-2x mb-2"></i><br>
+                                عن النظام
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal ترحيبية -->
+    <div class="modal fade" id="welcomeModal" tabindex="-1" aria-labelledby="welcomeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content welcome-modal">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title text-white" id="welcomeModalLabel">مرحباً بك في نظام مراقبة المولدات</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-white rounded-bottom">
+                    <div class="row">
+                        <div class="col-md-6 text-center mb-4">
+                            <div class="feature-icon">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <h5>مراقبة في الوقت الحقيقي</h5>
+                            <p class="text-muted">تابع حالة المولدات واستهلاك الوقود لحظياً</p>
+                        </div>
+                        <div class="col-md-6 text-center mb-4">
+                            <div class="feature-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h5>تقارير مفصلة</h5>
+                            <p class="text-muted">احصل على تقارير شاملة عن الأداء والاستهلاك</p>
+                        </div>
+                        <div class="col-md-6 text-center mb-4">
+                            <div class="feature-icon">
+                                <i class="fas fa-tools"></i>
+                            </div>
+                            <h5>إدارة الصيانة</h5>
+                            <p class="text-muted">جدولة ومتابعة أعمال الصيانة الدورية</p>
+                        </div>
+                        <div class="col-md-6 text-center mb-4">
+                            <div class="feature-icon">
+                                <i class="fas fa-cloud"></i>
+                            </div>
+                            <h5>استضافة مجانية</h5>
+                            <p class="text-muted">استضف نظامك مجاناً على GitHub Pages</p>
+                        </div>
+                    </div>
+                    
+                    <div class="deployment-guide mt-4">
+                        <h6>كيفية النشر على GitHub Pages:</h6>
+                        <ol class="mt-3">
+                            <li class="mb-2">أنشئ حساب على <a href="https://github.com" target="_blank">GitHub</a></li>
+                            <li class="mb-2">أنشئ مستودع جديد واسمه "generator-monitoring"</li>
+                            <li class="mb-2">انسخ كود HTML هذا واحفظه في ملف index.html</li>
+                            <li class="mb-2">ارفع الملف إلى المستودع</li>
+                            <li class="mb-2">اذهب إلى الإعدادات (Settings) ثم Pages</li>
+                            <li class="mb-2">اختر فرع main واضغط Save</li>
+                            <li class="mb-2">انتظر بضع دقائق ثم افتح الرابط الذي سيظهر</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>نصيحة:</strong> يمكنك الوصول إلى النظام من أي جهاز عبر الرابط: 
+                        <strong>https://yourusername.github.io/generator-monitoring</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // حالة المولدات (نشط/غير نشط)
+        let generatorStatus = {
+            1: false, // المولد الكبير
+            2: false  // المولد الصغير
+        };
+        
+        // بيانات المولدات المحفوظة
+        let generatorData = {
+            date: '',
+            notes: '',
+            generator1: {
+                previousHours: 0,
+                currentHours: 0,
+                previousKwh: 0,
+                currentKwh: 0,
+                startLevel: 0,
+                endLevel: 0,
+                tankCapacity: 1000,
+                status: false
+            },
+            generator2: {
+                previousHours: 0,
+                currentHours: 0,
+                previousKwh: 0,
+                currentKwh: 0,
+                startLevel: 0,
+                endLevel: 0,
+                tankCapacity: 500,
+                status: false
+            },
+            reserveTank: 0
+        };
+        
+        // Set current date
+        document.getElementById('currentDate').valueAsDate = new Date();
+        
+        // بدء تشغيل المولد
+        function startGenerator(generatorId) {
+            generatorStatus[generatorId] = true;
+            updateGeneratorStatus(generatorId);
+            
+            // تسجيل وقت بدء التشغيل
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ar-EG');
+            
+            // إضافة ملاحظة تلقائية
+            const notesTextarea = document.getElementById('notes');
+            const generatorName = generatorId === 1 ? 'الكبير' : 'الصغير';
+            notesTextarea.value += `\n[${now.toLocaleDateString('ar-EG')} ${timeString}] بدء تشغيل المولد ${generatorName}`;
+            
+            // حفظ البيانات تلقائياً
+            saveData();
+            
+            // إظهار تنبيه
+            showAlert(`تم بدء تشغيل المولد ${generatorName}`, 'success');
+        }
+        
+        // إيقاف تشغيل المولد
+        function stopGenerator(generatorId) {
+            generatorStatus[generatorId] = false;
+            updateGeneratorStatus(generatorId);
+            
+            // تسجيل وقت إيقاف التشغيل
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ar-EG');
+            
+            // إضافة ملاحظة تلقائية
+            const notesTextarea = document.getElementById('notes');
+            const generatorName = generatorId === 1 ? 'الكبير' : 'الصغير';
+            notesTextarea.value += `\n[${now.toLocaleDateString('ar-EG')} ${timeString}] إيقاف تشغيل المولد ${generatorName}`;
+            
+            // حفظ البيانات تلقائياً
+            saveData();
+            
+            // إظهار تنبيه
+            showAlert(`تم إيقاف تشغيل المولد ${generatorName}`, 'info');
+        }
+        
+        // تحديث حالة المولد في الواجهة
+        function updateGeneratorStatus(generatorId) {
+            const statusIndicator = document.getElementById(`status${generatorId}`);
+            const statusText = document.getElementById(`generator${generatorId}-status`);
+            
+            if (generatorStatus[generatorId]) {
+                statusIndicator.className = 'status-indicator status-on';
+                statusText.textContent = 'نشط';
+                statusText.style.color = '#28a745';
+            } else {
+                statusIndicator.className = 'status-indicator status-off';
+                statusText.textContent = 'غير نشط';
+                statusText.style.color = '#dc3545';
+            }
+        }
+        
+        // Calculate consumption function
+        function calculateConsumption(generatorId) {
+            const previousHours = parseFloat(document.getElementById(`previousHours${generatorId}`).value) || 0;
+            const currentHours = parseFloat(document.getElementById(`currentHours${generatorId}`).value) || 0;
+            const previousKwh = parseFloat(document.getElementById(`previousKwh${generatorId}`).value) || 0;
+            const currentKwh = parseFloat(document.getElementById(`currentKwh${generatorId}`).value) || 0;
+            const startLevel = parseFloat(document.getElementById(`startLevel${generatorId}`).value) || 0;
+            const endLevel = parseFloat(document.getElementById(`endLevel${generatorId}`).value) || 0;
+            const tankCapacity = parseFloat(document.getElementById(`tankCapacity${generatorId}`).value) || 1000;
+            
+            // التحقق من صحة البيانات
+            if (currentHours < previousHours) {
+                alert('القراءة الحالية يجب أن تكون أكبر من القراءة السابقة لعداد الساعات');
+                return;
+            }
+            
+            if (currentKwh < previousKwh) {
+                alert('القراءة الحالية يجب أن تكون أكبر من القراءة السابقة للإنتاج الكهربائي');
+                return;
+            }
+            
+            if (endLevel > startLevel) {
+                alert('مستوى الوقود في نهاية التشغيل يجب أن يكون أقل من مستوى البداية');
+                return;
+            }
+            
+            // Conversion factors
+            const conversionFactor1 = 12.5; // للمولد الكبير
+            const conversionFactor2 = 13.3; // للمولد الصغير
+            
+            const conversionFactor = generatorId === 1 ? conversionFactor1 : conversionFactor2;
+            
+            const operationHours = currentHours - previousHours;
+            const consumptionCm = startLevel - endLevel;
+            const consumptionLiters = consumptionCm * conversionFactor;
+            const remainingLiters = endLevel * conversionFactor;
+            const electricityProduction = currentKwh - previousKwh;
+            
+            // حساب نسبة الباقي في الخزان
+            const remainingPercentage = (remainingLiters / tankCapacity) * 100;
+            
+            document.getElementById(`operationHours${generatorId}`).textContent = operationHours.toFixed(2);
+            document.getElementById(`consumption${generatorId}`).textContent = consumptionLiters.toFixed(2);
+            document.getElementById(`remaining${generatorId}`).textContent = remainingLiters.toFixed(2);
+            document.getElementById(`electricityProduction${generatorId}`).textContent = electricityProduction.toFixed(2);
+            
+            // تحديث شريط مستوى الخزان
+            const tankLevelFill = document.getElementById(`tankLevel${generatorId}`);
+            tankLevelFill.style.width = `${Math.min(remainingPercentage, 100)}%`;
+            
+            // إظهار تحذير إذا كان مستوى الوقود منخفضاً
+            const tankAlert = document.getElementById(`tankAlert${generatorId}`);
+            if (remainingPercentage < 20) {
+                tankAlert.innerHTML = `<div class="alert alert-warning alert-low mt-2">
+                    <i class="bi bi-exclamation-triangle"></i> تحذير: مستوى الوقود منخفض (${remainingPercentage.toFixed(1)}%)
+                </div>`;
+            } else if (remainingPercentage < 10) {
+                tankAlert.innerHTML = `<div class="alert alert-danger mt-2">
+                    <i class="bi bi-exclamation-triangle-fill"></i> تحذير شديد: مستوى الوقود منخفض جداً (${remainingPercentage.toFixed(1)}%)
+                </div>`;
+            } else {
+                tankAlert.innerHTML = '';
+            }
+            
+            updateTotals();
+            
+            // إضافة إلى السجل
+            addToHistory(generatorId, operationHours, consumptionLiters, electricityProduction);
+        }
+        
+        // Update totals
+        function updateTotals() {
+            const consumption1 = parseFloat(document.getElementById('consumption1').textContent) || 0;
+            const consumption2 = parseFloat(document.getElementById('consumption2').textContent) || 0;
+            const electricity1 = parseFloat(document.getElementById('electricityProduction1').textContent) || 0;
+            const electricity2 = parseFloat(document.getElementById('electricityProduction2').textContent) || 0;
+            
+            document.getElementById('totalConsumption').textContent = (consumption1 + consumption2).toFixed(2) + ' لتر';
+            document.getElementById('totalElectricity').textContent = (electricity1 + electricity2).toFixed(2) + ' ك.واط ساعة';
+        }
+        
+        // Update reserve tank
+        function updateReserveTank() {
+            const currentFuel = parseFloat(document.getElementById('reserveTank').value) || 0;
+            const addFuel = parseFloat(document.getElementById('addFuel').value) || 0;
+            
+            if (addFuel < 0) {
+                alert('كمية الديزل المضافة يجب أن تكون قيمة موجبة');
+                return;
+            }
+            
+            const newTotal = currentFuel + addFuel;
+            document.getElementById('totalReserve').textContent = newTotal.toFixed(2);
+            document.getElementById('reserveTank').value = newTotal.toFixed(2);
+            document.getElementById('addFuel').value = '';
+            
+            // تحديث شريط التقدم
+            const reserveProgress = document.getElementById('reserveProgress');
+            reserveProgress.style.width = '100%'; // نفترض أن السعة القصوى 5000 لتر
+            
+            // إضافة ملاحظة تلقائية
+            const notesTextarea = document.getElementById('notes');
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ar-EG');
+            notesTextarea.value += `\n[${now.toLocaleDateString('ar-EG')} ${timeString}] إضافة ${addFuel} لتر إلى خزان الاحتياطي`;
+            
+            // إظهار تنبيه
+            showAlert(`تم إضافة ${addFuel} لتر إلى خزان الاحتياطي`, 'success');
+        }
+        
+        // Save data to local storage
+        function saveData() {
+            // تحديث بيانات المولدات
+            generatorData.date = document.getElementById('currentDate').value;
+            generatorData.notes = document.getElementById('notes').value;
+            
+            generatorData.generator1.previousHours = document.getElementById('previousHours1').value;
+            generatorData.generator1.currentHours = document.getElementById('currentHours1').value;
+            generatorData.generator1.previousKwh = document.getElementById('previousKwh1').value;
+            generatorData.generator1.currentKwh = document.getElementById('currentKwh1').value;
+            generatorData.generator1.startLevel = document.getElementById('startLevel1').value;
+            generatorData.generator1.endLevel = document.getElementById('endLevel1').value;
+            generatorData.generator1.tankCapacity = document.getElementById('tankCapacity1').value;
+            generatorData.generator1.status = generatorStatus[1];
+            
+            generatorData.generator2.previousHours = document.getElementById('previousHours2').value;
+            generatorData.generator2.currentHours = document.getElementById('currentHours2').value;
+            generatorData.generator2.previousKwh = document.getElementById('previousKwh2').value;
+            generatorData.generator2.currentKwh = document.getElementById('currentKwh2').value;
+            generatorData.generator2.startLevel = document.getElementById('startLevel2').value;
+            generatorData.generator2.endLevel = document.getElementById('endLevel2').value;
+            generatorData.generator2.tankCapacity = document.getElementById('tankCapacity2').value;
+            generatorData.generator2.status = generatorStatus[2];
+            
+            generatorData.reserveTank = document.getElementById('totalReserve').textContent;
+            
+            localStorage.setItem('generatorData', JSON.stringify(generatorData));
+            
+            // إظهار تنبيه
+            showAlert('تم حفظ البيانات بنجاح!', 'success');
+        }
+        
+        // Load data from local storage
+        function loadData() {
+            const savedData = JSON.parse(localStorage.getItem('generatorData'));
+            
+            if (savedData) {
+                document.getElementById('currentDate').value = savedData.date;
+                document.getElementById('notes').value = savedData.notes;
+                
+                document.getElementById('previousHours1').value = savedData.generator1.previousHours;
+                document.getElementById('currentHours1').value = savedData.generator1.currentHours;
+                document.getElementById('previousKwh1').value = savedData.generator1.previousKwh;
+                document.getElementById('currentKwh1').value = savedData.generator1.currentKwh;
+                document.getElementById('startLevel1').value = savedData.generator1.startLevel;
+                document.getElementById('endLevel1').value = savedData.generator1.endLevel;
+                document.getElementById('tankCapacity1').value = savedData.generator1.tankCapacity;
+                generatorStatus[1] = savedData.generator1.status;
+                
+                document.getElementById('previousHours2').value = savedData.generator2.previousHours;
+                document.getElementById('currentHours2').value = savedData.generator2.currentHours;
+                document.getElementById('previousKwh2').value = savedData.generator2.previousKwh;
+                document.getElementById('currentKwh2').value = savedData.generator2.currentKwh;
+                document.getElementById('startLevel2').value = savedData.generator2.startLevel;
+                document.getElementById('endLevel2').value = savedData.generator2.endLevel;
+                document.getElementById('tankCapacity2').value = savedData.generator2.tankCapacity;
+                generatorStatus[2] = savedData.generator2.status;
+                
+                document.getElementById('reserveTank').value = savedData.reserveTank;
+                document.getElementById('totalReserve').textContent = savedData.reserveTank;
+                
+                // تحديث حالة المولدات
+                updateGeneratorStatus(1);
+                updateGeneratorStatus(2);
+                
+                // إعادة حساب الاستهلاك
+                calculateConsumption(1);
+                calculateConsumption(2);
+                
+                // إظهار تنبيه
+                showAlert('تم تحميل البيانات السابقة بنجاح!', 'info');
+            } else {
+                showAlert('لا توجد بيانات محفوظة مسبقاً!', 'warning');
+            }
+        }
+        
+        // Generate and print report
+        function generateReport() {
+            // Update report content
+            document.getElementById('reportDate').textContent = document.getElementById('currentDate').value;
+            document.getElementById('reportHours1').textContent = document.getElementById('operationHours1').textContent + ' ساعة';
+            document.getElementById('reportConsumption1').textContent = document.getElementById('consumption1').textContent + ' لتر';
+            document.getElementById('reportElectricity1').textContent = document.getElementById('electricityProduction1').textContent + ' ك.واط ساعة';
+            document.getElementById('reportRemaining1').textContent = document.getElementById('remaining1').textContent + ' لتر';
+            document.getElementById('reportStatus1').textContent = generatorStatus[1] ? 'نشط' : 'غير نشط';
+            
+            document.getElementById('reportHours2').textContent = document.getElementById('operationHours2').textContent + ' ساعة';
+            document.getElementById('reportConsumption2').textContent = document.getElementById('consumption2').textContent + ' لتر';
+            document.getElementById('reportElectricity2').textContent = document.getElementById('electricityProduction2').textContent + ' ك.واط ساعة';
+            document.getElementById('reportRemaining2').textContent = document.getElementById('remaining2').textContent + ' لتر';
+            document.getElementById('reportStatus2').textContent = generatorStatus[2] ? 'نشط' : 'غير نشط';
+            
+            // Calculate total hours for the report
+            const hours1 = parseFloat(document.getElementById('operationHours1').textContent) || 0;
+            const hours2 = parseFloat(document.getElementById('operationHours2').textContent) || 0;
+            document.getElementById('reportTotalHours').textContent = (hours1 + hours2).toFixed(2) + ' ساعة';
+            
+            document.getElementById('reportTotalConsumption').textContent = document.getElementById('totalConsumption').textContent;
+            document.getElementById('reportTotalElectricity').textContent = document.getElementById('totalElectricity').textContent;
+            document.getElementById('reportReserve').textContent = document.getElementById('totalReserve').textContent + ' لتر';
+            document.getElementById('reportNotes').textContent = document.getElementById('notes').value || 'لا توجد ملاحظات';
+            
+            // Show report and print
+            const reportContainer = document.getElementById('reportContainer');
+            reportContainer.style.display = 'block';
+            
+            // Print after a short delay to ensure the report is visible
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        }
+        
+        // Close report
+        function closeReport() {
+            document.getElementById('reportContainer').style.display = 'none';
+        }
+        
+        // إضافة إلى سجل التاريخ
+        function addToHistory(generatorId, hours, consumption, electricity) {
+            const historyTable = document.getElementById('historyTable');
+            const now = new Date();
+            const dateString = now.toLocaleDateString('ar-EG');
+            const generatorName = generatorId === 1 ? 'الكبير' : 'الصغير';
+            
+            // إضافة صف جديد إلى الجدول
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${dateString}</td>
+                <td>المولد ${generatorName}</td>
+                <td>${hours.toFixed(2)}</td>
+                <td>${consumption.toFixed(2)} لتر</td>
+            `;
+            
+            historyTable.prepend(newRow);
+            
+            // حذف الصف الأول إذا كان يحتوي على "لا توجد بيانات"
+            if (historyTable.rows.length > 1 && historyTable.rows[0].cells[0].textContent === 'لا توجد بيانات') {
+                historyTable.deleteRow(0);
+            }
+            
+            // حفظ السجل في localStorage
+            saveHistory();
+        }
+        
+        // حفظ السجل في localStorage
+        function saveHistory() {
+            const historyTable = document.getElementById('historyTable');
+            const historyData = [];
+            
+            for (let i = 0; i < historyTable.rows.length; i++) {
+                const row = historyTable.rows[i];
+                historyData.push({
+                    date: row.cells[0].textContent,
+                    generator: row.cells[1].textContent,
+                    hours: row.cells[2].textContent,
+                    consumption: row.cells[3].textContent
+                });
+            }
+            
+            localStorage.setItem('generatorHistory', JSON.stringify(historyData));
+        }
+        
+        // تحميل السجل من localStorage
+        function loadHistory() {
+            const savedHistory = JSON.parse(localStorage.getItem('generatorHistory'));
+            const historyTable = document.getElementById('historyTable');
+            
+            if (savedHistory && savedHistory.length > 0) {
+                historyTable.innerHTML = '';
+                
+                savedHistory.forEach(item => {
+                    const newRow = document.createElement('tr');
+                    newRow.innerHTML = `
+                        <td>${item.date}</td>
+                        <td>${item.generator}</td>
+                        <td>${item.hours}</td>
+                        <td>${item.consumption}</td>
+                    `;
+                    historyTable.appendChild(newRow);
+                });
+            }
+        }
+        
+        // تسجيل صيانة
+        function logMaintenance(generatorId) {
+            const generatorName = generatorId === 1 ? 'الكبير' : 'الصغير';
+            const now = new Date();
+            const dateString = now.toLocaleDateString('ar-EG');
+            
+            // تحديث تاريخ آخر صيانة
+            document.getElementById(`lastMaintenance${generatorId}`).textContent = dateString;
+            
+            // تحديث تاريخ الصيانة القادمة (بعد 3 أشهر)
+            const nextMaintenance = new Date();
+            nextMaintenance.setMonth(nextMaintenance.getMonth() + 3);
+            document.getElementById(`nextMaintenance${generatorId}`).textContent = nextMaintenance.toLocaleDateString('ar-EG');
+            
+            // إضافة إلى سجل الصيانة
+            const maintenanceLog = document.getElementById('maintenanceLog');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${dateString}</td>
+                <td>المولد ${generatorName}</td>
+                <td>صيانة دورية</td>
+                <td>${generatorId === 1 ? '1,200' : '650'}</td>
+                <td>فني الصيانة</td>
+            `;
+            maintenanceLog.prepend(newRow);
+            
+            // إضافة ملاحظة تلقائية
+            const notesTextarea = document.getElementById('notes');
+            notesTextarea.value += `\n[${dateString}] تم إجراء صيانة دورية للمولد ${generatorName}`;
+            
+            // إظهار تنبيه
+            showAlert(`تم تسجيل صيانة المولد ${generatorName}`, 'success');
+        }
+        
+        // تصدير البيانات لإكسل
+        function exportToExcel() {
+            // في تطبيق حقيقي، نستخدم مكتبة مثل SheetJS
+            // هنا نعرض رسالة توضيحية
+            showAlert('سيتم تصدير البيانات إلى ملف إكسل. في التطبيق الكامل، ستتم إضافة هذه الوظيفة.', 'info');
+            
+            // محاكاة التصدير
+            setTimeout(() => {
+                showAlert('تم تصدير البيانات بنجاح!', 'success');
+            }, 1500);
+        }
+        
+        // إظهار تنبيه
+        function showAlert(message, type) {
+            // إنشاء عنصر التنبيه
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // إضافة التنبيه إلى أعلى الصفحة
+            document.querySelector('.container').prepend(alertDiv);
+            
+            // إزالة التنبيه تلقائياً بعد 5 ثوان
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+        
+        // إظهار النافذة الترحيبية
+        function showWelcomeModal() {
+            const welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'));
+            welcomeModal.show();
+        }
+        
+        // تحميل البيانات عند فتح الصفحة
+        window.onload = function() {
+            loadData();
+            loadHistory();
+            
+            // إظهار النافذة الترحيبية في أول زيارة
+            if (!localStorage.getItem('welcomeShown')) {
+                setTimeout(() => {
+                    showWelcomeModal();
+                    localStorage.setItem('welcomeShown', 'true');
+                }, 1000);
+            }
+        };
+    </script>
+</body>
+</html>
